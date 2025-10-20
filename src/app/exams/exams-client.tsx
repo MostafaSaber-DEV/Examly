@@ -134,13 +134,16 @@ export default function ExamsClient({}: ExamsClientProps) {
         console.log('📤 Sending webhook data:', webhookData);
 
         try {
-          const response = await fetch('/api/webhook', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(webhookData),
-          });
+          const response = await fetch(
+            'https://mostafa-tata50.app.n8n.cloud/webhook-test/9021079c-3f5b-476a-a2fc-5db4ed4f7a9f',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(webhookData),
+            }
+          );
 
           const result = await response.json();
 
@@ -463,7 +466,10 @@ export default function ExamsClient({}: ExamsClientProps) {
 
       {/* Grading Modal */}
       <Dialog open={isGradingOpen} onOpenChange={setIsGradingOpen}>
-        <DialogContent className='max-w-4xl w-[95vw] max-h-[90vh] bg-white'>
+        <DialogContent
+          className='max-w-4xl w-[95vw] max-h-[90vh] bg-white'
+          aria-describedby='grading-dialog-description'
+        >
           <DialogHeader className='pb-4'>
             <DialogTitle className='text-2xl font-bold text-gray-900 flex items-center'>
               <Trophy className='h-6 w-6 mr-3 text-blue-600' />
@@ -472,6 +478,9 @@ export default function ExamsClient({}: ExamsClientProps) {
           </DialogHeader>
 
           <div className='space-y-4'>
+            <p id='grading-dialog-description' className='sr-only'>
+              نافذة تسجيل درجات الطلاب في الامتحان
+            </p>
             {/* Search Bar */}
             <div className='relative'>
               <Search className='absolute left-3 top-3 h-4 w-4 text-gray-400' />

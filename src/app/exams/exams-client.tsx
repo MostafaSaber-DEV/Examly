@@ -108,26 +108,47 @@ export default function ExamsClient({}: ExamsClientProps) {
 
     if (success) {
       // إرسال البيانات للويب هوك
-      if (process.env.NEXT_PUBLIC_WEBHOOK_URL) {
+      const webhookUrl = process.env.NEXT_PUBLIC_WEBHOOK_URL;
+      console.log('🔗 Webhook URL:', webhookUrl);
+
+      if (webhookUrl) {
+        const webhookData = {
+          student_name: student.name,
+          student_phone: student.phone,
+          student_academic_year: student.academic_year,
+          exam_name: selectedExam.title,
+          total_score: selectedExam.total_score,
+          student_score: grades[studentId],
+          timestamp: new Date().toISOString(),
+        };
+
+        console.log('📤 Sending webhook data:', webhookData);
+
         try {
-          await fetch(process.env.NEXT_PUBLIC_WEBHOOK_URL, {
+          const response = await fetch(webhookUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              student_name: student.name,
-              student_phone: student.phone,
-              student_academic_year: student.academic_year,
-              exam_name: selectedExam.title,
-              total_score: selectedExam.total_score,
-              student_score: grades[studentId],
-              timestamp: new Date().toISOString(),
-            }),
+            body: JSON.stringify(webhookData),
           });
+
+          console.log('📡 Webhook response status:', response.status);
+          console.log('📡 Webhook response ok:', response.ok);
+
+          if (response.ok) {
+            const responseText = await response.text();
+            console.log('✅ Webhook sent successfully:', responseText);
+          } else {
+            console.error('❌ Webhook failed with status:', response.status);
+            const errorText = await response.text();
+            console.error('❌ Error response:', errorText);
+          }
         } catch (error) {
-          console.error('خطأ في إرسال البيانات للويب هوك:', error);
+          console.error('❌ خطأ في إرسال البيانات للويب هوك:', error);
         }
+      } else {
+        console.warn('⚠️ Webhook URL not configured');
       }
 
       setGrades((prev) => ({ ...prev, [studentId]: 0 }));

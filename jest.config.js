@@ -11,6 +11,12 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  testPathIgnorePatterns: [
+    '<rootDir>/.next/',
+    '<rootDir>/node_modules/',
+    '<rootDir>/coverage/',
+  ],
+  modulePathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/coverage/'],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
@@ -24,6 +30,8 @@ const customJestConfig = {
       statements: 80,
     },
   },
+  maxWorkers: 1,
+  workerIdleMemoryLimit: '512MB',
 };
 
 module.exports = createJestConfig(customJestConfig);

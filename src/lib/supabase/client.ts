@@ -1,7 +1,7 @@
 'use client';
 
 import { createBrowserClient } from '@supabase/ssr';
-import { Database } from '@/types/database';
+import { Database } from '@/types/supabase';
 
 export function createClient() {
   return createBrowserClient<Database>(
@@ -19,3 +19,6 @@ export function getSupabaseClient() {
   }
   return supabaseClient;
 }
+
+// Type-safe Supabase client for hooks
+export type SupabaseClient = ReturnType<typeof createClient>;

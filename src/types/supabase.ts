@@ -68,7 +68,7 @@ export interface Database {
       [_ in never]: never;
     };
     Enums: {
-      user_role: 'student' | 'instructor' | 'admin';
+      [_ in never]: never;
     };
   };
 }

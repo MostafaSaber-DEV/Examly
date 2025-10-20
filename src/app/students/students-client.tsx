@@ -123,10 +123,13 @@ export default function StudentsClient({}: StudentsClientProps) {
               <DialogTrigger asChild>
                 <Button className='bg-blue-600 hover:bg-blue-700'>
                   <Plus className='h-4 w-4 mr-2' />
-                  اضافة طالب جديد
+                  طالب جديد
                 </Button>
               </DialogTrigger>
-              <DialogContent className='sm:max-w-[500px] bg-white border-0 shadow-2xl'>
+              <DialogContent
+                className='sm:max-w-[500px] bg-white border-0 shadow-2xl'
+                aria-describedby='dialog-description'
+              >
                 <DialogHeader className='pb-6 border-b border-gray-100'>
                   <DialogTitle className='text-2xl font-bold text-gray-900 flex items-center'>
                     <Users className='h-6 w-6 mr-3 text-blue-600' />
@@ -252,128 +255,62 @@ export default function StudentsClient({}: StudentsClientProps) {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        {/* Search and Stats */}
+      {/* Search and Stats */}
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
         <div className='mb-8'>
-          <div className='flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6'>
-            <div className='relative flex-1 max-w-md'>
-              <Search className='absolute left-3 top-3 h-4 w-4 text-gray-400' />
-              <Input
-                type='text'
-                placeholder='البحث في الطلاب...'
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className='pl-10'
-              />
-            </div>
-
-            <div className='flex items-center space-x-4 text-sm text-gray-600'>
-              <span>المجموع: {students.length} طالب</span>
-              <span>•</span>
-              <span>المعروض: {filteredStudents.length}</span>
-            </div>
-          </div>
-
-          {/* Stats Cards */}
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
-            <Card className='p-6'>
-              <div className='flex items-center'>
-                <div className='p-2 rounded-lg bg-blue-500'>
-                  <Users className='h-6 w-6 text-white' />
-                </div>
-                <div className='ml-4'>
-                  <p className='text-sm font-medium text-gray-600'>
-                    إجمالي الطلاب
-                  </p>
-                  <p className='text-2xl font-bold text-gray-900'>
-                    {students.length}
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className='p-6'>
-              <div className='flex items-center'>
-                <div className='p-2 rounded-lg bg-green-500'>
-                  <UserCheck className='h-6 w-6 text-white' />
-                </div>
-                <div className='ml-4'>
-                  <p className='text-sm font-medium text-gray-600'>
-                    السنة الحالية
-                  </p>
-                  <p className='text-2xl font-bold text-gray-900'>
-                    {
-                      students.filter((s) => s.academic_year === '2024-2025')
-                        .length
-                    }
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className='p-6'>
-              <div className='flex items-center'>
-                <div className='p-2 rounded-lg bg-purple-500'>
-                  <Calendar className='h-6 w-6 text-white' />
-                </div>
-                <div className='ml-4'>
-                  <p className='text-sm font-medium text-gray-600'>
-                    جديد هذا الأسبوع
-                  </p>
-                  <p className='text-2xl font-bold text-gray-900'>
-                    {
-                      students.filter((s) => {
-                        const weekAgo = new Date();
-                        weekAgo.setDate(weekAgo.getDate() - 7);
-                        return new Date(s.created_at) > weekAgo;
-                      }).length
-                    }
-                  </p>
-                </div>
-              </div>
-            </Card>
+          <div className='relative'>
+            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
+            <Input
+              placeholder='البحث عن طالب...'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className='pl-10 h-12 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+            />
           </div>
         </div>
 
-        {/* Students Cards */}
+        {/* Students Grid */}
         {loading ? (
-          <div className='flex justify-center items-center py-12'>
-            <div className='text-center'>
-              <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto'></div>
-              <p className='mt-4 text-gray-600'>جاري تحميل الطلاب...</p>
-            </div>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className='p-6 animate-pulse'>
+                <div className='h-4 bg-gray-200 rounded w-3/4 mb-4'></div>
+                <div className='h-3 bg-gray-200 rounded w-1/2 mb-2'></div>
+                <div className='h-3 bg-gray-200 rounded w-2/3'></div>
+              </Card>
+            ))}
           </div>
         ) : filteredStudents.length === 0 ? (
           <div className='text-center py-12'>
-            <Users className='h-16 w-16 text-gray-400 mx-auto mb-4' />
-            <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-              لا يوجد طلاب
+            <Users className='h-12 w-12 text-gray-400 mx-auto mb-4' />
+            <h3 className='text-lg font-medium text-gray-900 mb-2'>
+              {searchTerm ? 'لا توجد نتائج' : 'لا يوجد طلاب'}
             </h3>
-            <p className='text-gray-600'>قم بإضافة طلاب جدد أو تعديل البحث</p>
+            <p className='text-gray-500'>
+              {searchTerm ? 'جرب البحث بكلمات مختلفة' : 'ابدأ بإضافة طالب جديد'}
+            </p>
           </div>
         ) : (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
             {filteredStudents.map((student, index) => (
               <motion.div
                 key={student.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
               >
-                <Card className='p-4 hover:shadow-lg transition-shadow duration-200'>
-                  <div className='flex items-center justify-between mb-4'>
+                <Card className='p-6 hover:shadow-lg transition-shadow bg-white border border-gray-200'>
+                  <div className='flex justify-between items-start mb-4'>
                     <div className='flex items-center'>
-                      <div className='h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center'>
-                        <span className='text-white font-bold text-lg'>
-                          {student.name.charAt(0).toUpperCase()}
-                        </span>
+                      <div className='w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center'>
+                        <UserCheck className='h-5 w-5 text-blue-600' />
                       </div>
                       <div className='ml-3'>
-                        <h3 className='text-lg font-bold text-gray-900'>
+                        <h3 className='font-semibold text-gray-900'>
                           {student.name}
                         </h3>
-                        <p className='text-sm text-gray-500'>
+                        <p className='text-sm text-gray-500 flex items-center'>
+                          <Calendar className='h-3 w-3 mr-1' />
                           {new Date(student.created_at).toLocaleDateString(
                             'ar-EG'
                           )}
@@ -382,36 +319,32 @@ export default function StudentsClient({}: StudentsClientProps) {
                     </div>
                     <div className='flex space-x-2'>
                       <Button
-                        variant='outline'
+                        variant='ghost'
                         size='sm'
                         onClick={() => handleEdit(student)}
+                        className='text-blue-600 hover:text-blue-700 hover:bg-blue-50'
                       >
                         <Edit className='h-4 w-4' />
                       </Button>
                       <Button
-                        variant='outline'
+                        variant='ghost'
                         size='sm'
                         onClick={() => setDeleteConfirm(student.id)}
-                        className='text-red-600 hover:text-red-700'
+                        className='text-red-600 hover:text-red-700 hover:bg-red-50'
                       >
                         <Trash2 className='h-4 w-4' />
                       </Button>
                     </div>
                   </div>
 
-                  <div className='space-y-2'>
-                    <div className='flex items-center'>
-                      <Phone className='h-4 w-4 text-gray-400 mr-2' />
-                      <span className='text-sm text-gray-900'>
-                        {student.phone}
-                      </span>
+                  <div className='space-y-3'>
+                    <div className='flex items-center text-sm text-gray-600'>
+                      <Phone className='h-4 w-4 mr-2 text-gray-400' />
+                      <span>{student.phone}</span>
                     </div>
-
-                    <div className='flex items-center'>
-                      <GraduationCap className='h-4 w-4 text-gray-400 mr-2' />
-                      <span className='text-sm text-gray-900'>
-                        {student.academic_year}
-                      </span>
+                    <div className='flex items-center text-sm text-gray-600'>
+                      <GraduationCap className='h-4 w-4 mr-2 text-gray-400' />
+                      <span>{student.academic_year}</span>
                     </div>
                   </div>
                 </Card>
@@ -419,29 +352,45 @@ export default function StudentsClient({}: StudentsClientProps) {
             ))}
           </div>
         )}
-      </main>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-          <Card className='p-6 max-w-md w-full mx-4'>
-            <h3 className='text-lg font-semibold mb-4'>تأكيد الحذف</h3>
-            <p className='text-gray-600 mb-6'>
-              هل أنت متأكد من حذف هذا الطالب؟ لا يمكن التراجع عن هذا الإجراء.
-            </p>
-            <div className='flex justify-end space-x-3'>
-              <Button variant='outline' onClick={() => setDeleteConfirm(null)}>
+        <Dialog
+          open={!!deleteConfirm}
+          onOpenChange={() => setDeleteConfirm(null)}
+        >
+          <DialogContent
+            className='sm:max-w-[400px] bg-white'
+            aria-describedby='delete-dialog-description'
+          >
+            <DialogHeader>
+              <DialogTitle className='text-xl font-bold text-gray-900'>
+                تأكيد الحذف
+              </DialogTitle>
+            </DialogHeader>
+            <div className='py-4'>
+              <p id='delete-dialog-description' className='text-gray-600'>
+                هل أنت متأكد من حذف هذا الطالب؟ لا يمكن التراجع عن هذا الإجراء.
+              </p>
+            </div>
+            <div className='flex justify-end gap-3'>
+              <Button
+                variant='outline'
+                onClick={() => setDeleteConfirm(null)}
+                className='border-gray-300 text-gray-700 hover:bg-gray-50'
+              >
                 إلغاء
               </Button>
               <Button
-                variant='destructive'
                 onClick={() => handleDelete(deleteConfirm)}
+                className='bg-red-600 hover:bg-red-700 text-white'
               >
                 حذف
               </Button>
             </div>
-          </Card>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

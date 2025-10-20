@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useExams } from '@/hooks/use-exams';
 import { useStudents } from '@/hooks/use-students';
 import { useStudentExams } from '@/hooks/use-student-exams';
@@ -50,6 +51,9 @@ export default function ExamsClient({}: ExamsClientProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [studentSearch, setStudentSearch] = useState('');
   const [grades, setGrades] = useState<{ [key: string]: number }>({});
+  const [submittingGrades, setSubmittingGrades] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [formData, setFormData] = useState({
     title: '',
     total_score: 100,
@@ -94,53 +98,72 @@ export default function ExamsClient({}: ExamsClientProps) {
   };
 
   const handleGradeSubmit = async (studentId: string) => {
-    if (!selectedExam || !grades[studentId]) return;
+    if (
+      !selectedExam ||
+      grades[studentId] === undefined ||
+      grades[studentId] === null
+    )
+      return;
 
     const student = students.find((s) => s.id === studentId);
     if (!student) return;
 
-    // حفظ الدرجة في قاعدة البيانات
-    const success = await addStudentExam({
-      student_id: studentId,
-      exam_id: selectedExam.id,
-      score: grades[studentId],
-    });
+    // تعيين حالة التحميل
+    setSubmittingGrades((prev) => ({ ...prev, [studentId]: true }));
 
-    if (success) {
-      // إرسال البيانات للويب هوك عبر API route
-      const webhookData = {
-        student_name: student.name,
-        student_phone: student.phone,
-        student_academic_year: student.academic_year,
-        exam_name: selectedExam.title,
-        total_score: selectedExam.total_score,
-        student_score: grades[studentId],
-        timestamp: new Date().toISOString(),
-      };
+    try {
+      // حفظ الدرجة في قاعدة البيانات
+      const success = await addStudentExam({
+        student_id: studentId,
+        exam_id: selectedExam.id,
+        score: grades[studentId],
+      });
 
-      console.log('📤 Sending webhook data:', webhookData);
+      if (success) {
+        // إرسال البيانات للويب هوك عبر API route
+        const webhookData = {
+          student_name: student.name,
+          student_phone: student.phone,
+          student_academic_year: student.academic_year,
+          exam_name: selectedExam.title,
+          total_score: selectedExam.total_score,
+          student_score: grades[studentId],
+          timestamp: new Date().toISOString(),
+        };
 
-      try {
-        const response = await fetch('/api/webhook', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(webhookData),
-        });
+        console.log('📤 Sending webhook data:', webhookData);
 
-        const result = await response.json();
+        try {
+          const response = await fetch('/api/webhook', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookData),
+          });
 
-        if (response.ok) {
-          console.log('✅ Webhook sent successfully:', result);
-        } else {
-          console.error('❌ Webhook failed:', result);
+          const result = await response.json();
+
+          if (response.ok) {
+            console.log('✅ Webhook sent successfully:', result);
+            toast.success(`تم حفظ درجة ${student.name} وإرسال البيانات بنجاح`);
+          } else {
+            console.error('❌ Webhook failed:', result);
+            toast.error('تم حفظ الدرجة لكن فشل إرسال البيانات للويب هوك');
+          }
+        } catch (error) {
+          console.error('❌ خطأ في إرسال البيانات للويب هوك:', error);
+          toast.error('تم حفظ الدرجة لكن فشل إرسال البيانات للويب هوك');
         }
-      } catch (error) {
-        console.error('❌ خطأ في إرسال البيانات للويب هوك:', error);
-      }
 
-      setGrades((prev) => ({ ...prev, [studentId]: 0 }));
+        // إعادة تعيين الدرجة بعد النجاح
+        setGrades((prev) => ({ ...prev, [studentId]: 0 }));
+      } else {
+        toast.error('فشل في حفظ الدرجة');
+      }
+    } finally {
+      // إزالة حالة التحميل
+      setSubmittingGrades((prev) => ({ ...prev, [studentId]: false }));
     }
   };
 
@@ -505,13 +528,19 @@ export default function ExamsClient({}: ExamsClientProps) {
                       <Button
                         onClick={() => handleGradeSubmit(student.id)}
                         disabled={
-                          !grades[student.id] ||
+                          submittingGrades[student.id] ||
+                          grades[student.id] === undefined ||
+                          grades[student.id] === null ||
                           (grades[student.id] ?? 0) >
                             (selectedExam?.total_score || 0)
                         }
                         className='h-12 w-12 p-0 bg-blue-600 hover:bg-blue-700 disabled:opacity-50'
                       >
-                        <ArrowRight className='h-5 w-5 text-white' />
+                        {submittingGrades[student.id] ? (
+                          <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white'></div>
+                        ) : (
+                          <ArrowRight className='h-5 w-5 text-white' />
+                        )}
                       </Button>
                     </div>
                   </div>

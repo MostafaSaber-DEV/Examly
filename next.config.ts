@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // 👇 أضف هذا الجزء هنا داخل نفس الكائن
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;

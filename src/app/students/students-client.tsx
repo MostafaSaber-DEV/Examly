@@ -123,7 +123,7 @@ export default function StudentsClient({}: StudentsClientProps) {
               <DialogTrigger asChild>
                 <Button className='bg-blue-600 hover:bg-blue-700'>
                   <Plus className='h-4 w-4 mr-2' />
-                  إضافة طالب
+                  إضافة طالبkkk
                 </Button>
               </DialogTrigger>
               <DialogContent className='sm:max-w-[500px] bg-white border-0 shadow-2xl'>

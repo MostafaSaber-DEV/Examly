@@ -107,48 +107,37 @@ export default function ExamsClient({}: ExamsClientProps) {
     });
 
     if (success) {
-      // إرسال البيانات للويب هوك
-      const webhookUrl = process.env.NEXT_PUBLIC_WEBHOOK_URL;
-      console.log('🔗 Webhook URL:', webhookUrl);
+      // إرسال البيانات للويب هوك عبر API route
+      const webhookData = {
+        student_name: student.name,
+        student_phone: student.phone,
+        student_academic_year: student.academic_year,
+        exam_name: selectedExam.title,
+        total_score: selectedExam.total_score,
+        student_score: grades[studentId],
+        timestamp: new Date().toISOString(),
+      };
 
-      if (webhookUrl) {
-        const webhookData = {
-          student_name: student.name,
-          student_phone: student.phone,
-          student_academic_year: student.academic_year,
-          exam_name: selectedExam.title,
-          total_score: selectedExam.total_score,
-          student_score: grades[studentId],
-          timestamp: new Date().toISOString(),
-        };
+      console.log('📤 Sending webhook data:', webhookData);
 
-        console.log('📤 Sending webhook data:', webhookData);
+      try {
+        const response = await fetch('/api/webhook', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(webhookData),
+        });
 
-        try {
-          const response = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(webhookData),
-          });
+        const result = await response.json();
 
-          console.log('📡 Webhook response status:', response.status);
-          console.log('📡 Webhook response ok:', response.ok);
-
-          if (response.ok) {
-            const responseText = await response.text();
-            console.log('✅ Webhook sent successfully:', responseText);
-          } else {
-            console.error('❌ Webhook failed with status:', response.status);
-            const errorText = await response.text();
-            console.error('❌ Error response:', errorText);
-          }
-        } catch (error) {
-          console.error('❌ خطأ في إرسال البيانات للويب هوك:', error);
+        if (response.ok) {
+          console.log('✅ Webhook sent successfully:', result);
+        } else {
+          console.error('❌ Webhook failed:', result);
         }
-      } else {
-        console.warn('⚠️ Webhook URL not configured');
+      } catch (error) {
+        console.error('❌ خطأ في إرسال البيانات للويب هوك:', error);
       }
 
       setGrades((prev) => ({ ...prev, [studentId]: 0 }));
